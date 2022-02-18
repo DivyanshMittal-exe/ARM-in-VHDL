@@ -9,27 +9,26 @@ entity flag is
   port (
     clock: in std_logic;
     op_code:in optype;
+    ins_type: in instr_class_type;
     s_bit: in std_logic;
     carry: in std_logic;
     a: in std_logic_vector(31 downto 0);
     b: in std_logic_vector(31 downto 0);
     result: in std_logic_vector(31 downto 0);
-    msb: in std_logic;
-    
-    c_in,v_in,z_in,n_in : in std_logic;
     c_out,v_out,z_out,n_out : out std_logic
 
   ) ;
 end flag ;
 
 architecture arch of flag is
-    flag : process( clock )
-    
-    c_out <= c_in;
-    v_out <= v_in;
-    z_out <= z_in;
-    n_out <= n_in;
+  c_out<='0';
+  v_out<='0';
+  z_out<='0';
+  n_out<='0';
+begin
 
+  flag : process( clock )
+    
     begin
         if op_code = s_add or op_code = s_sub then
             if s_bit = '1'  then
@@ -44,10 +43,5 @@ architecture arch of flag is
         end if ;
         
     end process ; -- flag
-
-
-begin
-
-
 
 end architecture ; -- arch

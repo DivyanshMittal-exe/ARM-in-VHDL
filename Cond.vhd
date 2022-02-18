@@ -5,7 +5,6 @@ library ieee ;
 
 entity cond is
   port (
-    clock: in std_logic;
     z,c,n,v : in std_logic;
     cond_code: in cond;
     p: out std_logic 
@@ -15,9 +14,9 @@ end cond ;
 architecture arch of cond is
 begin
 
-    c : process( clock )
+    c : process(cond_code,z,c,v,n)
     begin
-        case( cond_code ) is
+        case(cond_code) is
         
             when eq=>
                 p <= z;
