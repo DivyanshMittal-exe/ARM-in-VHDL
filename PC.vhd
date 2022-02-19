@@ -8,7 +8,7 @@ entity pc is
     reset: in std_logic;
     branch: in std_logic;
     offset: in std_logic_vector(31 downto 0);
-    counter: out std_logic_vector(7 downto 0):= "00000000"
+    counter: buffer std_logic_vector(7 downto 0):= "00000000"
   ) ;
 end pc ; 
 
@@ -21,7 +21,7 @@ architecture arch of pc is
                 counter <= "00000000";
             elsif rising_edge(clock) then
                 if branch = '1' then
-                    counter <= std_logic_vector(signed(counter) + signed(offset)+8);
+                    counter <= std_logic_vector(signed(counter) + signed(offset)+8)(7 downto 0);
                 else
                     counter <= std_logic_vector(signed(counter) + 4);    
                 end if ;

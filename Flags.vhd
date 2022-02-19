@@ -29,8 +29,12 @@ begin
   flag : process( clock )
   begin
     if( rising_edge(clock) ) and (s_bit = '1') and (ins_type = DP) then
-        z_out <= '1' when result = x"00000000" else '0';
-        n_out <= '1' when result(31) = '1' else '0';
+			if	result = x"00000000" then 
+				z_out <= '1';
+			else
+				z_out <= '0';
+			end if;
+        n_out <= result(31);
         c_out <= carry;
         v_out <= (a(31) and b(31) and (not result(31))) or ((not a(31)) and (not b(31))and (result(31)));
         

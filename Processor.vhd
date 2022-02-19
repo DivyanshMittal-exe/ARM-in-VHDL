@@ -148,13 +148,77 @@ begin
       counter => prog_c
   );
 
-  br <= '1' when instr_class =BRN and p_cond = '1' else
-        '0';
 
   prog_mem_label: prog_mem PORT MAP (
     read_loc => prog_c(7 downto 2),
     read_data => instruction
     );
+
+  Decoder_label: Decoder port map(
+    instruction => instruction,
+    instr_class => instr_class,
+    operation => operation,
+    DP_subclass => DP_subclass,
+    DP_operand_src => DP_operand_src,
+    load_store => load_store,
+    DT_offset_sign => DT_offset_sign
+  );
+
+  Reg_label: Reg port map (
+    clock => clock,
+    write_en => RW ,
+    r_ad_1 =>  std_logic_vector(to_unsigned(Rn, 4)),
+    r_ad_2 => rad2_port,
+    write_1 =>  std_logic_vector(to_unsigned(Rd, 4)),
+    data => reg_data,
+    r_da_1 => d1,
+    r_da_2 => d2
+    );
+
+
+    ALU_label: ALU port map(
+      op1 => d1,
+      op2 => alu_op_2,
+      op_code => operation,
+      c_in => c,
+      c_out => alu_c_out,
+      res => ALU_out
+    );
+
+    data_mem_label: data_mem port map (
+      clock => clock,
+      read_data => dm_out,
+
+      write_en => MW,
+
+      locn => ALU_out(5 downto 0),
+      write_data => d2
+      );
+
+    flag_label: flag port map (
+      clock => clock,
+      op_code => operation,
+      ins_type => instr_class,
+      s_bit => instruction(20),
+      carry => alu_c_out,
+      a => d1,
+      b => alu_op_2,
+      result => ALU_out,
+      c_out => c,
+      v_out => v,
+      z_out => z,
+      n_out => n
+    ) ;
+    
+    cond_label :cond port map (
+      c => c,
+      v => v,
+      z => z,
+      n => n,
+      cond_code => conday(to_integer(unsigned(instruction(31 downto 28)))),
+      p =>  p_cond
+    ) ;
+
 
     S_ext <= "111111" when (DT_offset_sign = plus) else "000000";
 --     Cond <= instruction (29 downto 28);
@@ -167,90 +231,22 @@ begin
     Rn <= to_integer (unsigned(instruction (19 downto 16)));
     Rm <= to_integer (unsigned(instruction (3 downto 0)));
 
-
-  Decoder_label: Decoder port map(
-    instruction => instruction,
-    instr_class => instr_class,
-    operation => operation,
-    DP_subclass => DP_subclass,
-    DP_operand_src => DP_operand_src,
-    load_store => load_store,
-    DT_offset_sign => DT_offset_sign
-  );
   -- rsrc
 
   rad2_port <= std_logic_vector(to_unsigned(Rd, 4)) when (instr_class = DT and load_store = store)  else
               std_logic_vector(to_unsigned(Rm, 4)) ;
               
-   RW <= '1' when (instr_class = DP and DP_subclass = arith) or (instr_class = DT and load_store = load) else
-                  '0';
-
-   Reg_label: Reg port map (
-      clock => clock,
-      write_en => RW ,
-      r_ad_1 =>  std_logic_vector(to_unsigned(Rn, 4)),
-      r_ad_2 => rad2_port,
-      write_1 =>  std_logic_vector(to_unsigned(Rd, 4)),
-      data => reg_data,
-      r_da_1 => d1,
-      r_da_2 => d2
-      );
-    
-      -- asrc port
-      alu_op_2 <= "00000000000000000000"&Offset when instr_class = DT else 
-                  "000000000000000000000000"&Imm when (instr_class = DP and instruction (25) = '1') else
-                  d2;
-
-    ALU_label: ALU port map(
-      op1 => d1,
-      op2 => alu_op_2,
-      op_code => operation,
-      c_in => c,
-      c_out => alu_c_out,
-      res => ALU_out
-    );
-
-      MW <= "1111" when (instr_class = DT and load_store = load) else "0000";
+  RW <= '1' when (instr_class = DP and (DP_subclass = arith or DP_subclass = logic)) or (instr_class = DT and load_store = load) else
+                '0';
+  
+    -- asrc port
+  alu_op_2 <= "00000000000000000000"&Offset when instr_class = DT or (instr_class = DP and instruction (25) = '1') else 
+              d2;
 
 
-      data_mem_label: data_mem port map (
-        clock => clock,
-        read_data => dm_out,
-
-        write_en => MW,
-
-        locn => ALU_out(5 downto 0),
-        write_data => d2
-        );
-
-      reg_data <= ALU_out when instr_class = DP else "00000000000000000000"&Offset;
-
-            
-            
-      flag_label: flag port map (
-        clock => clock,
-        op_code => operation,
-        ins_type => instr_class,
-        s_bit => instruction(20),
-        carry => alu_c_out,
-        a => d1,
-        b => alu_op_2,
-        result => ALU_out,
-        c_out => c,
-        v_out => v,
-        z_out => z,
-        n_out => n
-      ) ;
-      
-      cond_label :cond port map (
-        c => c,
-        v => v,
-        z => z,
-        n => n,
-        cond_code => conday(to_integer(unsigned(instruction(31 downto 28)))),
-        p =>  p_cond
-      ) ;
-    
+  MW <= "1111" when (instr_class = DT and load_store = store) else "0000";
+  reg_data <= ALU_out when instr_class = DP else "00000000000000000000"&Offset;
+  br <= '1' when instr_class =BRN and p_cond = '1' else'0';
 
 
 end architecture ;

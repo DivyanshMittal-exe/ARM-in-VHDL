@@ -29,14 +29,19 @@ BEGIN
         reset => reset,
         clock => clock
         );
-	
-    Clock_gen: process
     
+    reset <= '0' after 2ns;
+    
+    Clock_gen: process
     begin
+    
+     clock <= '0';
+     wait for  1 ns;
+    
     identifier : for i in 0 to 10 loop
-        clock <= '0';
-        wait for  5 ns;
         clock <= '1';
+        wait for  5 ns;
+        clock <= '0';
         wait for 5 ns ;
     end loop ; -- identifier loop
     wait;
