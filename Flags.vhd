@@ -15,33 +15,27 @@ entity flag is
     a: in std_logic_vector(31 downto 0);
     b: in std_logic_vector(31 downto 0);
     result: in std_logic_vector(31 downto 0);
-    c_out,v_out,z_out,n_out : out std_logic
-
+    c_out,v_out,z_out,n_out : out std_logic := '0'
   ) ;
 end flag ;
 
 architecture arch of flag is
-  c_out<='0';
-  v_out<='0';
-  z_out<='0';
-  n_out<='0';
+  -- c_out<='0';
+  -- v_out<='0';
+  -- z_out<='0';
+  -- n_out<='0';
 begin
 
   flag : process( clock )
-    
-    begin
-        if op_code = s_add or op_code = s_sub then
-            if s_bit = '1'  then
-                c_out <= carry;
-                v_out <= (a(31) and b(31) and (not result(31))) or ((not a(31)) and (not b(31))and (result(31)));
-            end if ;
-        elsif op_code = s_mov then
-            
-        elsif op_code = s_cmp  then
-            
-            
-        end if ;
+  begin
+    if( rising_edge(clock) ) and s_bit = '1' and ins_type = '1' then
+        z_out <= '1' when result = x"00000000" else '0';
+        n_out <= '1' when result(31) = '1' else 0;
+        c_out <= carry;
+        v_out <= (a(31) and b(31) and (not result(31))) or ((not a(31)) and (not b(31))and (result(31)));
         
-    end process ; -- flag
+      
+    end if ;
+  end process ; -- flag
 
 end architecture ; -- arch
