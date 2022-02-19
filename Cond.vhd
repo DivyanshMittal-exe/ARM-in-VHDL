@@ -1,12 +1,12 @@
 library ieee ;
     use ieee.std_logic_1164.all ;
     use ieee.numeric_std.all ;
-    use work.MyTypes.all
+use work.MyTypes.all;
 
 entity cond is
   port (
     z,c,n,v : in std_logic;
-    cond_code: in cond;
+    cond_code: in cond_codes;
     p: out std_logic 
   ) ;
 end cond ; 
@@ -14,7 +14,7 @@ end cond ;
 architecture arch of cond is
 begin
 
-    c : process(cond_code,z,c,v,n)
+    c_pro : process(cond_code,z,c,v,n)
     begin
         case(cond_code) is
         
@@ -41,7 +41,7 @@ begin
             when ge=>
                 p<= v xnor n;
             when lt=>
-                p<= v xor n
+                p<= v xor n;
             when gt=>
                 p <= ((not z) and (n xnor v));
             when le=>

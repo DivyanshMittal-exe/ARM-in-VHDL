@@ -1,7 +1,7 @@
 library ieee ;
   use ieee.std_logic_1164.all ;
   use ieee.numeric_std.all ;
-  use work.MyTypes.all
+use work.MyTypes.all;
 
 
 entity processor is
@@ -93,10 +93,14 @@ architecture arch of processor is
       component cond
         port (
           z,c,n,v : in std_logic;
-          cond_code: in cond;
+          cond_code: in cond_codes;
           p: out std_logic 
         ) ;
       end component ;   
+      
+       type condtype is array (0 to 14) of cond_codes;
+        constant conday : condtype := 
+        (eq,ne,cs,cc,mi,pl,vs,vc,hi,ls,ge,lt,gt,le,al);
 
       signal br: std_logic := '0';
       signal ofst: std_logic_vector(23 downto 0) := "000000000000000000000000";
@@ -112,21 +116,21 @@ architecture arch of processor is
 
       signal Zflag, predicate : std_logic; 
       -- Sign extension for branch address
-       signal Sext : std_logic_vector (5 downto 0);
+       signal S_ext : std_logic_vector (5 downto 0);
       -- Instruction fields
-       signal Cond : std_logic_vector (1 downto 0);
+--        signal Cond : std_logic_vector (1 downto 0);
        signal Imm : std_logic_vector (7 downto 0); 
        signal Offset : std_logic_vector (11 downto 0); 
        signal S_offset : std_logic_vector (23 downto 0);
-       signal Rd, Rn, Rm : integer range 0 to 15,
-       signal d1,d2: std_logic_vector(31 downto 0):= "00000000" ;
+       signal Rd, Rn, Rm : integer range 0 to 15;
+       signal d1,d2: std_logic_vector(31 downto 0):= x"00000000" ;
        signal alu_op_2: std_logic_vector(31 downto 0) ;
-       signal c: std_logic;
 
        signal ALU_out : std_logic_vector(31 downto 0) ;
        signal dm_out : std_logic_vector(31 downto 0) ;
        signal reg_data: std_logic_vector(31 downto 0) ;
        signal MW : std_logic_vector(3 downto 0) := "0000" ;
+       signal RW : std_logic := '1' ;
        signal rad2_port:std_logic_vector(3 downto 0) ;
        signal alu_c_out: std_logic;
        signal c: std_logic;
@@ -136,7 +140,7 @@ architecture arch of processor is
        signal p_cond: std_logic:='0';
 begin
   
-  pc port map(
+  pc_label: pc port map(
       clock => clock,
       reset => reset,
       branch => br,
@@ -147,13 +151,13 @@ begin
   br <= '1' when instr_class =BRN and p_cond = '1' else
         '0';
 
-  prog_mem PORT MAP (
-    read_data => prog_c(7 downto 2),
-    read_loc => instruction
+  prog_mem_label: prog_mem PORT MAP (
+    read_loc => prog_c(7 downto 2),
+    read_data => instruction
     );
 
     S_ext <= "111111" when (DT_offset_sign = plus) else "000000";
-    Cond <= instruction (29 downto 28);
+--     Cond <= instruction (29 downto 28);
     Imm <= instruction (7 downto 0); 
     Offset <= instruction (11 downto 0); 
     S_offset <= instruction (23 downto 0);
@@ -164,49 +168,52 @@ begin
     Rm <= to_integer (unsigned(instruction (3 downto 0)));
 
 
-  Decoder port map(
-    instruction => instruction;
-    instr_class => instr_class;
-    operation => operation;
-    DP_subclass => DP_subclass;
-    DP_operand_src => DP_operand_src;
-    load_store => load_store;
+  Decoder_label: Decoder port map(
+    instruction => instruction,
+    instr_class => instr_class,
+    operation => operation,
+    DP_subclass => DP_subclass,
+    DP_operand_src => DP_operand_src,
+    load_store => load_store,
     DT_offset_sign => DT_offset_sign
   );
   -- rsrc
 
-  rad2_port <= Rd when (instr_class = DT and load_store = store)  else
-              Rm;
+  rad2_port <= std_logic_vector(to_unsigned(Rd, 4)) when (instr_class = DT and load_store = store)  else
+              std_logic_vector(to_unsigned(Rm, 4)) ;
+              
+   RW <= '1' when (instr_class = DP and DP_subclass = arith) or (instr_class = DT and load_store = load) else
+                  '0';
 
-   Reg port map (
+   Reg_label: Reg port map (
       clock => clock,
-      write_en: in std_logic;
-      r_ad_1 => Rn,
+      write_en => RW ,
+      r_ad_1 =>  std_logic_vector(to_unsigned(Rn, 4)),
       r_ad_2 => rad2_port,
-      write_1 => Rd,
-      data 
+      write_1 =>  std_logic_vector(to_unsigned(Rd, 4)),
+      data => reg_data,
       r_da_1 => d1,
       r_da_2 => d2
       );
     
       -- asrc port
       alu_op_2 <= "00000000000000000000"&Offset when instr_class = DT else 
-                  x"000000"&Imm when instr_class = DP and DP_operand_src = imm else
+                  "000000000000000000000000"&Imm when (instr_class = DP and instruction (25) = '1') else
                   d2;
 
-    ALU port map(
+    ALU_label: ALU port map(
       op1 => d1,
       op2 => alu_op_2,
       op_code => operation,
       c_in => c,
       c_out => alu_c_out,
-      res => ALU_out,
+      res => ALU_out
     );
 
-      MW <= '1' when (instr_class = DT and load_store = load) else '0';
+      MW <= "1111" when (instr_class = DT and load_store = load) else "0000";
 
 
-      data_mem port map (
+      data_mem_label: data_mem port map (
         clock => clock,
         read_data => dm_out,
 
@@ -215,14 +222,12 @@ begin
         locn => ALU_out(5 downto 0),
         write_data => d2
         );
-      );
 
-      reg_data <= ALU_out when instr_class = DP else "00000000000000000000"&Offset
-            DP_subclass <= arith when "001" | "010" | "011",
-            RW <= '1' when (instr_class = DP and DP_subclass = arith) or (instr_class = DT and load_store = load) else
-                  '0';
+      reg_data <= ALU_out when instr_class = DP else "00000000000000000000"&Offset;
+
             
-      flag port map (
+            
+      flag_label: flag port map (
         clock => clock,
         op_code => operation,
         ins_type => instr_class,
@@ -237,12 +242,12 @@ begin
         n_out => n
       ) ;
       
-      cond port map (
+      cond_label :cond port map (
         c => c,
         v => v,
         z => z,
         n => n,
-        cond_code => instruction(31 downto 28),
+        cond_code => conday(to_integer(unsigned(instruction(31 downto 28)))),
         p =>  p_cond
       ) ;
     

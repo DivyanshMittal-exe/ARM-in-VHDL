@@ -8,31 +8,24 @@ entity pc is
     reset: in std_logic;
     branch: in std_logic;
     offset: in std_logic_vector(31 downto 0);
-    counter: out std_logic_vector(7 downto 0)
+    counter: out std_logic_vector(7 downto 0):= "00000000"
   ) ;
 end pc ; 
 
 architecture arch of pc is
-    signal progC: std_logic_vector(7 downto 0) := "00000000";
     begin
-        resetting_process : process( reset )
-        begin
-            if reset = '1' then
-                progC <= "00000000";
-            end if ;
-        end process ; -- resetting_process
 
-        c : process( clock )
+        c : process( clock,reset )
         begin
-            if rising_edge(clock) then
+        	if reset = '1' then
+                counter <= "00000000";
+            elsif rising_edge(clock) then
                 if branch = '1' then
-                    progC <= std_logic_vector(signed(progC) + signed(offset)+8);
+                    counter <= std_logic_vector(signed(counter) + signed(offset)+8);
                 else
-                    progC <= std_logic_vector(signed(progC) + 4);    
+                    counter <= std_logic_vector(signed(counter) + 4);    
                 end if ;
             end if ;
         end process ; -- c
-        
-        counter <= progC;
         
 end architecture ;

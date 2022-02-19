@@ -36,4 +36,4 @@ architecture Behavioral of Decoder is
             load_store <= load when instruction (20) = '1' else store;
             DT_offset_sign <= plus when instruction (23) = '1' else 
             minus;
-end Behavioral
+end Behavioral;
