@@ -12,7 +12,7 @@ package MyTypes is
     type DP_operand_src_type is (reg, imm);
     type load_store_type is (load, store);
     type DT_offset_sign_type is (plus, minus);
-    type cond_codes is (eq,ne,cs,cc,mi,pl,vs,vc,hi,ls,ge,lt,gt,le,al);
+    type cond_codes is (eq, ne, cs, cc, mi, pl, vs, vc, hi, ls, ge, lt, gt, le, al);
 end MyTypes;
 
 package body MyTypes is
