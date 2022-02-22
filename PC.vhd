@@ -4,27 +4,25 @@ library ieee ;
 
 entity pc is
   port (
-    clock: in std_logic;
     reset: in std_logic;
-    branch: in std_logic;
-    offset: in std_logic_vector(31 downto 0);
-    counter: buffer std_logic_vector(7 downto 0):= "00000000"
+    PW: in std_logic;
+    P_in: in std_logic_vector(31 downto 0);
+    P_out: out std_logic_vector(31 downto 0)
+
   ) ;
 end pc ; 
 
 architecture arch of pc is
-    begin
+    signal P: std_logic_vector(31 downto 0):=x"00000000" ;
 
-        c : process( clock,reset )
+    begin
+        P_out <= P;
+        c : process(reset,PW,P_in)
         begin
         	if reset = '1' then
-                counter <= "00000000";
-            elsif rising_edge(clock) then
-                if branch = '1' then
-                    counter <= std_logic_vector(signed(counter) + signed(offset)+8)(7 downto 0);
-                else
-                    counter <= std_logic_vector(signed(counter) + 4);    
-                end if ;
+                P <= x"00000000";
+            elsif PW = '1' then
+                P <= P_in;
             end if ;
         end process ; -- c
         

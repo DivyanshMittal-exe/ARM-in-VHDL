@@ -7,10 +7,8 @@ use work.MyTypes.all;
 
 entity flag is
   port (
-    clock: in std_logic;
+    f_set: in std_logic;
     op_code:in optype;
-    ins_type: in instr_class_type;
-    s_bit: in std_logic;
     carry: in std_logic;
     a: in std_logic_vector(31 downto 0);
     b: in std_logic_vector(31 downto 0);
@@ -20,15 +18,11 @@ entity flag is
 end flag ;
 
 architecture arch of flag is
-  -- c_out<='0';
-  -- v_out<='0';
-  -- z_out<='0';
-  -- n_out<='0';
 begin
 
-  flag : process( clock )
+  flag : process( f_set,op_code,carry,a,b,result )
   begin
-    if( rising_edge(clock) ) and (s_bit = '1') and (ins_type = DP) then
+    if f_set = '1' then
 			if	result = x"00000000" then 
 				z_out <= '1';
 			else
@@ -37,8 +31,6 @@ begin
         n_out <= result(31);
         c_out <= carry;
         v_out <= (a(31) and b(31) and (not result(31))) or ((not a(31)) and (not b(31))and (result(31)));
-        
-      
     end if ;
   end process ; -- flag
 

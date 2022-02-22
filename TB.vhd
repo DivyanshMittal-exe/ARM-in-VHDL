@@ -38,7 +38,7 @@ BEGIN
      clock <= '0';
      wait for  1 ns;
     
-    identifier : for i in 0 to 10 loop
+    identifier : for i in 0 to 40 loop
         clock <= '1';
         wait for  5 ns;
         clock <= '0';
