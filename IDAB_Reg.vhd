@@ -5,6 +5,7 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity IDAB_reg is
     port (
+        clock: in std_logic;
         IW     : in std_logic;
         DW     : in std_logic;
         AW     : in std_logic;

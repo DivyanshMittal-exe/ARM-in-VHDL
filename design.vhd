@@ -1,4 +1,3 @@
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -34,12 +33,13 @@ architecture arch of processor is
 
   component Reg
     port (
-      clock          : in std_logic;
-      write_en       : in std_logic;
-      r_ad_1, r_ad_2 : in std_logic_vector(3 downto 0);
-      write_1        : in std_logic_vector(3 downto 0);
-      data           : in std_logic_vector(31 downto 0);
-      r_da_1, r_da_2 : out std_logic_vector(31 downto 0)
+      clock                                                                : in std_logic;
+      write_en                                                             : in std_logic;
+      r_ad_1, r_ad_2                                                       : in std_logic_vector(3 downto 0);
+      write_1                                                              : in std_logic_vector(3 downto 0);
+      data                                                                 : in std_logic_vector(31 downto 0);
+      r_da_1, r_da_2                                                       : out std_logic_vector(31 downto 0);
+      r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15 : out std_logic_vector(31 downto 0)
     );
   end component;
 
@@ -114,7 +114,9 @@ architecture arch of processor is
       Asrc1          : out std_logic;
       Asrc2          : out std_logic_vector(1 downto 0);
       Fset           : out std_logic;
-      Rew            : out std_logic
+      Rew            : out std_logic;
+              Debug          : out std_logic_vector(2 downto 0)
+
     );
   end component;
 
@@ -231,12 +233,13 @@ begin
     Asrc1          => Asrc1,
     Asrc2          => Asrc2,
     Fset           => Fset,
-    Rew            => Rew
+    Rew            => Rew,
+   Debug           => open
 
   );
 
   IDAB_reg_label : IDAB_reg port map(
-    clock  => clock,
+  	clock => clock,
     IW     => IW,
     DW     => DW,
     AW     => AW,
@@ -268,7 +271,7 @@ begin
   );
 
   pc_label : pc port map(
-    clock => clock,
+  	clock => clock,
     reset => reset,
     PW    => PW,
     P_in  => ALU_out,
@@ -283,15 +286,15 @@ begin
     wd    => B_out
   );
   Reg_label : Reg port map(
-    clock    => clock,
-    write_en => RW,
-    r_ad_1   => I_out(19 downto 16),
-    r_ad_2   => rad2_port,
-    write_1  => I_out(15 downto 12),
-    data     => wd_ref,
-    r_da_1   => A_in,
-    r_da_2   => B_in
-
+    clock                                                                => clock,
+    write_en                                                             => RW,
+    r_ad_1                                                               => I_out(19 downto 16),
+    r_ad_2                                                               => rad2_port,
+    write_1                                                              => I_out(15 downto 12),
+    data                                                                 => wd_ref,
+    r_da_1                                                               => A_in,
+    r_da_2                                                               => B_in
+--     r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15 => open
   );
 
   ALU_label : ALU port map(
@@ -340,6 +343,7 @@ begin
   alu_op_2 <= B_out when Asrc2 = "00" else
     x"00000004" when Asrc2 = "01" else
     X"00000" & I_out(11 downto 0) when Asrc2 = "10" else
-    std_logic_vector(unsigned("000000" & I_out(23 downto 0) & "00") + 4);
+    std_logic_vector(unsigned("000000" & I_out(23 downto 0) & "00") + unsigned(x"00000004"));
 
 end architecture;
+

@@ -34,26 +34,26 @@ entity FSM is
 end FSM;
 
 architecture behaviour of FSM is
-    type type_fstate is (start, ab, strldr, str, ldr, rf_ldr, b, dp, rf_dp);
-    signal fstate     : type_fstate;
-    signal reg_fstate : type_fstate := start;
+    type state_enum is (start, get_ab, str_or_ldr, str, ldr, rf_ldr, branch, dp, rf_dp);
+    signal current_state : state_enum;
+    signal next_state    : state_enum := start;
+    -- Debug signal helps in debugging which state of FSM I am in currently
+    signal Debug         : std_logic_vector(3 downto 0);
 begin
-    process (clock, reg_fstate)
+    process (clock, next_state)
     begin
         if (rising_edge(clock)) then
-            fstate <= reg_fstate;
+            current_state <= next_state;
         end if;
     end process;
 
-    -- DP_subclass Check is reqd or not
-
-    process (fstate, reset)
+    process (current_state, reset, DP_subclass, instr_class, load_store, DP_operand_src, DT_offset_sign, p_cond, set_cond, operation_in)
     begin
         if (reset = '1') then
-            reg_fstate <= start;
+            next_state <= start;
         else
             PW            <= '0';
-            iORd          <= 'X';
+            iORd          <= '0';
             MW            <= '0';
             IW            <= '0';
             DW            <= '0';
@@ -67,26 +67,25 @@ begin
             Fset          <= '0';
             Rew           <= '0';
 
-            operation_out <= add;
-            case fstate is
+            operation_out <= operation_in;
+            case current_state is
                 when start =>
-                    reg_fstate    <= ab;
+                    Debug         <= "0000";
+                    next_state    <= get_ab;
                     PW            <= '1';
                     iORd          <= '0';
                     IW            <= '1';
                     Asrc1         <= '0';
                     Asrc2         <= "01";
                     operation_out <= add;
-                when ab =>
+                when get_ab =>
+                    Debug <= "0001";
                     if instr_class = DT then
-                        reg_fstate <= strldr;
+                        next_state <= str_or_ldr;
                     elsif instr_class = BRN then
-                        reg_fstate <= b;
-                    elsif instr_class = DP then
-                        reg_fstate <= dp;
-                        -- Inserting 'else' block to prevent latch inference
+                        next_state <= branch;
                     else
-                        reg_fstate <= ab;
+                        next_state <= dp;
                     end if;
 
                     if (instr_class = DT and load_store = store) then
@@ -98,14 +97,13 @@ begin
                     AW <= '1';
                     BW <= '1';
 
-                when strldr =>
-                    if ((load_store = store)) then
-                        reg_fstate <= str;
-                    elsif ((load_store = load)) then
-                        reg_fstate <= ldr;
-                        -- Inserting 'else' block to prevent latch inference
+                when str_or_ldr =>
+                    Debug <= "0010";
+
+                    if load_store = store then
+                        next_state <= str;
                     else
-                        reg_fstate <= strldr;
+                        next_state <= ldr;
                     end if;
 
                     Asrc1 <= '1';
@@ -119,32 +117,37 @@ begin
                     end if;
 
                 when str =>
-                    reg_fstate <= start;
+                    Debug      <= "0011";
+
+                    next_state <= start;
                     iORd       <= '1';
                     MW         <= '1';
                 when ldr =>
-                    reg_fstate <= rf_ldr;
+                    Debug      <= "0100";
+                    next_state <= rf_ldr;
                     iORd       <= '1';
                     DW         <= '1';
 
                 when rf_ldr =>
-                    reg_fstate <= start;
+                    Debug      <= "0101";
+                    next_state <= start;
                     M2R        <= '1';
                     RW         <= '1';
 
-                when b =>
-                    reg_fstate <= start;
+                when branch =>
+                    Debug      <= "0110";
+                    next_state <= start;
                     if p_cond = '1' then
                         PW <= '1';
                     else
                         PW <= '0';
                     end if;
-
                     Asrc1         <= '0';
                     Asrc2         <= "11";
                     operation_out <= add;
                 when dp =>
-                    reg_fstate <= rf_dp;
+                    Debug      <= "0111";
+                    next_state <= rf_dp;
                     Asrc1      <= '1';
                     if DP_operand_src = reg then
                         Asrc2 <= "00";
@@ -161,11 +164,12 @@ begin
                     operation_out <= operation_in;
 
                 when rf_dp =>
-                    reg_fstate <= start;
+                    Debug      <= "1000";
+                    next_state <= start;
                     M2R        <= '0';
                     RW         <= '1';
                 when others =>
-                    report "Reach undefined state";
+                    next_state <= start;
             end case;
         end if;
     end process;

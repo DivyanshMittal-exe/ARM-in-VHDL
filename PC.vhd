@@ -4,6 +4,7 @@ use ieee.numeric_std.all;
 
 entity pc is
   port (
+    clock: in std_logic;
     reset : in std_logic;
     PW    : in std_logic;
     P_in  : in std_logic_vector(31 downto 0);

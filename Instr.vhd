@@ -26,11 +26,11 @@ architecture Behavioral of Decoder is
     constant conday : condtype :=
     (eq, ne, cs, cc, mi, pl, vs, vc, hi, ls, ge, lt, gt, le, al);
 begin
-    with instruction (27 downto 26) select
-    instr_class <= DP when "00",
-        DT when "01",
-        BRN when "10",
-        none when others;
+    
+    instr_class <= DP when instruction (27 downto 26) =  "00" else
+        DT when instruction (27 downto 26) = "01" else 
+        BRN when instruction (27 downto 26) = "10" else
+        none;
     operation <= oparray (to_integer(unsigned (
         instruction (24 downto 21))));
     with instruction (24 downto 22) select

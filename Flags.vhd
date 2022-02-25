@@ -28,7 +28,14 @@ begin
       end if;
       n_out <= result(31);
       c_out <= carry;
-      v_out <= (a(31) and b(31) and (not result(31))) or ((not a(31)) and (not b(31)) and (result(31)));
+      if op_code = sub then
+        v_out <= (a(31) and (not b(31)) and (not result(31))) or ((not a(31)) and (not b(31)) and (result(31)));
+      elsif op_code = rsb then
+        v_out <= ((not a(31)) and b(31) and (not result(31))) or ((not a(31)) and (not b(31)) and (result(31)));
+      else
+        v_out <= (a(31) and b(31) and (not result(31))) or ((not a(31)) and (not b(31)) and (result(31)));
+      end if;
+
     end if;
   end process;      -- flag
 

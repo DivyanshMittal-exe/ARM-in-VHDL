@@ -5,22 +5,20 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity Reg is
     port (
-        clock                                                                : in std_logic;
-        write_en                                                             : in std_logic;
-        r_ad_1, r_ad_2                                                       : in std_logic_vector(3 downto 0);
-        write_1                                                              : in std_logic_vector(3 downto 0);
-        data                                                                 : in std_logic_vector(31 downto 0);
-        r_da_1, r_da_2                                                       : out std_logic_vector(31 downto 0);
-
-        -- Debugging use: Probes registers
-        r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15 : out std_logic_vector(31 downto 0)
+        clock          : in std_logic;
+        write_en       : in std_logic;
+        r_ad_1, r_ad_2 : in std_logic_vector(3 downto 0);
+        write_1        : in std_logic_vector(3 downto 0);
+        data           : in std_logic_vector(31 downto 0);
+        r_da_1, r_da_2 : out std_logic_vector(31 downto 0)
     );
+
 end Reg;
 
 architecture reg_arch of Reg is
     type mem is array(0 to 15) of std_logic_vector(31 downto 0);
-    signal Regs : mem := (others => (others => '0'));
-
+    signal Regs                                                                 : mem := (others => (others => 'X'));
+    signal r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15 : std_logic_vector(31 downto 0);
 begin
     r_da_1 <= Regs(to_integer(unsigned(r_ad_1)));
     r_da_2 <= Regs(to_integer(unsigned(r_ad_2)));

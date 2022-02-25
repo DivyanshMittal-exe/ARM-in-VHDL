@@ -15,7 +15,14 @@ end data_mem;
 
 architecture arch of data_mem is
     type mem is array(0 to 511) of std_logic_vector(31 downto 0);
-    signal data : mem := (others => (others => '0'));
+    signal data : mem := (0 => X"E3A00000",
+                        1 => X"E3A01000",
+                        2 => X"E0800001",
+                        3 => X"E2811001",
+                        4 => X"E3510005",
+                        5 => X"1AFFFFFB",
+                        others => X"00000000"
+    );
 begin
     rd <= data(to_integer(unsigned(ad)));
 
