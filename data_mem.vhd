@@ -15,12 +15,24 @@ end data_mem;
 
 architecture arch of data_mem is
     type mem is array(0 to 511) of std_logic_vector(31 downto 0);
-    signal data : mem := (0 => X"E3A00000",
-                        1 => X"E3A01000",
-                        2 => X"E0800001",
-                        3 => X"E2811001",
-                        4 => X"E3510005",
-                        5 => X"1AFFFFFB",
+    signal data : mem := (0 => X"E3A00086",
+                        1 => X"E3A01071",
+                        2 => X"E0002001",
+                        3 => X"E0202001",
+                        4 => X"E0402001",
+                        5 => X"E0602001",
+                        6 => X"E0802001",
+                        7 => X"E0A02001",
+                        8 => X"E0C02001",
+                        9 => X"E0E02001",
+                        10 => X"E1100001",
+                        11 => X"E1300001",
+                        12 => X"E1500001",
+                        13 => X"E1700001",
+                        14 => X"E1802001",
+                        15 => X"E1A00001",
+                        16 => X"E1C02001",
+                        17 => X"E1E00001",
                         others => X"00000000"
     );
 begin
