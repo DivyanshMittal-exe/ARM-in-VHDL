@@ -294,7 +294,7 @@ begin
     data                                                                 => wd_ref,
     r_da_1                                                               => A_in,
     r_da_2                                                               => B_in
---     r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15 => open
+    --     r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15 => open
   );
 
   ALU_label : ALU port map(

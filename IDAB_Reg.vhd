@@ -20,7 +20,14 @@ entity IDAB_reg is
         D_out  : out std_logic_vector(31 downto 0);
         A_out  : out std_logic_vector(31 downto 0);
         B_out  : out std_logic_vector(31 downto 0);
-        Re_out : out std_logic_vector(31 downto 0)
+        Re_out : out std_logic_vector(31 downto 0);
+
+        DDPW : in std_logic;
+        DDP_in : in std_logic_vector(31 downto 0);
+        DDP_out : in std_logic_vector(31 downto 0);
+        XDPW : in std_logic;
+        XDP_in : in std_logic_vector(31 downto 0);
+        XDP_out : in std_logic_vector(31 downto 0)
     );
 end IDAB_reg;
 
@@ -30,12 +37,16 @@ architecture IDAB_reg_arch of IDAB_reg is
     signal A  : std_logic_vector(31 downto 0) := x"00000000";
     signal B  : std_logic_vector(31 downto 0) := x"00000000";
     signal Re : std_logic_vector(31 downto 0) := x"00000000";
+    signal DDP : std_logic_vector(31 downto 0) := x"00000000";
+    signal XDP : std_logic_vector(31 downto 0) := x"00000000";
 begin
     I_out  <= I;
     D_out  <= D;
     A_out  <= A;
     B_out  <= B;
     Re_out <= Re;
+    XDP_out <= XDP;
+    DDP_out <= DDP;
 
     process (clock, IW, I_in)
     begin
@@ -71,4 +82,18 @@ begin
         end if;
     end process;
 
+    process (clock, DDPW, DDP_in)
+    begin
+        if DDPW = '1' and rising_edge(clock) then
+            DDP <= DDP_in;
+        end if;
+    end process;
+
+
+    process (clock, XDPW, XDP_in)
+    begin
+        if XDPW = '1' and rising_edge(clock) then
+            XDP <= XDP_in;
+        end if;
+    end process;
 end IDAB_reg_arch; -- IDAB_reg_arch

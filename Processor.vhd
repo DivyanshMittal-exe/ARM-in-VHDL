@@ -92,6 +92,7 @@ architecture arch of processor is
     port (
       reset          : in std_logic := '0';
       clock          : in std_logic;
+      instruction    : in std_logic_vector(31 downto 0);
       instr_class    : in instr_class_type;
       DP_subclass    : in DP_subclass_type;
       load_store     : in load_store_type;
@@ -106,7 +107,7 @@ architecture arch of processor is
       MW             : out std_logic;
       IW             : out std_logic;
       DW             : out std_logic;
-      Rscrc          : out std_logic;
+      Rscrc          : out std_logic_vector(1 downto 0) ;;
       M2R            : out std_logic;
       RW             : out std_logic;
       AW             : out std_logic;
@@ -114,7 +115,10 @@ architecture arch of processor is
       Asrc1          : out std_logic;
       Asrc2          : out std_logic_vector(1 downto 0);
       Fset           : out std_logic;
-      Rew            : out std_logic
+      Rew            : out std_logic;
+      DDPW           : out std_logic;
+      XDPW           : out std_logic;
+      DDP_MUX        : out std_logic
     );
   end component;
 
@@ -140,6 +144,27 @@ architecture arch of processor is
       Re_out : out std_logic_vector(31 downto 0)
     );
   end component;
+
+  component rotator
+    port (
+      inp           : in std_logic_vector(11 downto 0);
+      oup           : out std_logic_vector(31 downto 0);
+      rotated_carry : out std_logic
+
+    );
+  end component;
+
+  component shifter
+    port (
+      B           : in std_logic_vector(31 downto 0);
+      X           : in std_logic_vector(31 downto 0);
+      Instr       : in std_logic_vector(31 downto 0);
+
+      shifted_out : out std_logic_vector(31 downto 0);
+      carry_out   : out std_logic
+    );
+  end component;
+
   signal br              : std_logic                     := '0';
   signal ofst            : std_logic_vector(23 downto 0) := "000000000000000000000000";
   signal prog_c          : std_logic_vector(7 downto 0)  := "00000000";
@@ -166,7 +191,7 @@ architecture arch of processor is
   signal MW              : std_logic;
   signal MW_vector       : std_logic_vector(3 downto 0);
 
-  signal Rscrc           : std_logic;
+  signal Rscrc           : std_logic_vector(1 downto 0);
   signal M2R             : std_logic;
   signal RW              : std_logic;
   signal Asrc1           : std_logic;
@@ -177,16 +202,24 @@ architecture arch of processor is
   signal AW              : std_logic;
   signal BW              : std_logic;
   signal ReW             : std_logic;
+  signal XDPW            : std_logic;
+  signal DDPW            : std_logic;
   signal I_in            : std_logic_vector(31 downto 0);
   signal D_in            : std_logic_vector(31 downto 0);
   signal A_in            : std_logic_vector(31 downto 0);
   signal B_in            : std_logic_vector(31 downto 0);
   signal Re_in           : std_logic_vector(31 downto 0);
+  signal XDP_in          : std_logic_vector(31 downto 0);
+  signal DDP_in          : std_logic_vector(31 downto 0);
   signal I_out           : std_logic_vector(31 downto 0);
   signal D_out           : std_logic_vector(31 downto 0);
   signal A_out           : std_logic_vector(31 downto 0);
   signal B_out           : std_logic_vector(31 downto 0);
   signal Re_out          : std_logic_vector(31 downto 0);
+  signal DDP_out         : std_logic_vector(31 downto 0);
+  signal XDP_out         : std_logic_vector(31 downto 0);
+
+  signal DDP_MUX         : std_logic;
 
   signal P_out           : std_logic_vector(31 downto 0);
   signal set_cond        : std_logic;
@@ -201,12 +234,17 @@ architecture arch of processor is
   signal alu_op_1        : std_logic_vector(31 downto 0);
 
   signal ALU_out         : std_logic_vector(31 downto 0);
+  signal rotated_out     : std_logic_vector(31 downto 0);
+  signal rotated_carry   : std_logic;
 
+  signal shifted_out     : std_logic_vector(31 downto 0);
+  signal shifter_carry   : std_logic;
 begin
 
   fsm_label : FSM port map(
     reset          => reset,
     clock          => clock,
+    instruction    => I_out,
     instr_class    => instr_class,
     load_store     => load_store,
     DP_subclass    => DP_subclass,
@@ -231,29 +269,39 @@ begin
     Asrc1          => Asrc1,
     Asrc2          => Asrc2,
     Fset           => Fset,
-    Rew            => Rew
+    Rew            => Rew,
+    DDPW           => DDPW,
+    XDPW           => XDPW,
+    DDP_MUX        => DDP_MUX
 
   );
 
   IDAB_reg_label : IDAB_reg port map(
-    clock  => clock,
-    IW     => IW,
-    DW     => DW,
-    AW     => AW,
-    BW     => BW,
-    ReW    => ReW,
+    clock   => clock,
+    IW      => IW,
+    DW      => DW,
+    AW      => AW,
+    BW      => BW,
+    ReW     => ReW,
+    DDPW    => DDPW,
+    XDPW    => XDPW,
 
-    I_in   => rd_mem,
-    D_in   => rd_mem,
-    A_in   => A_in,
-    B_in   => B_in,
-    Re_in  => ALU_out,
+    I_in    => rd_mem,
+    D_in    => rd_mem,
+    A_in    => A_in,
+    B_in    => B_in,
+    Re_in   => ALU_out,
 
-    I_out  => I_out,
-    D_out  => D_out,
-    A_out  => A_out,
-    B_out  => B_out,
-    Re_out => Re_out
+    XDP_in  => B_in,
+    DDP_in  => rotated_out when DDP_MUX = '0' else shifter_out,
+
+    I_out   => I_out,
+    D_out   => D_out,
+    A_out   => A_out,
+    B_out   => B_out,
+    XDP_out => XDP_out,
+    DDP_out => DDP_out,
+    Re_out  => Re_out
   );
   Decoder_label : Decoder port map(
     instruction    => I_out,
@@ -325,13 +373,28 @@ begin
     p         => p_cond
   );
 
+  rotator_label : rotator port map(
+    inp           => I_out,
+    oup           => rotated_out,
+    rotated_carry => rotated_carry
+  );
+  shifter_label : shifter port map(
+    B           => B_out,
+    X           => XDP_out,
+    Instr       => I_out,
+
+    shifted_out => shifted_out,
+    carry_out   => shifter_carry
+  );
+
   ad_mem <= P_out(17 downto 2) when iORd = '0' else
     Re_out(15 downto 0);
   MW_vector <= "1111" when MW = '1' else
     "0000";
 
-  rad2_port <= I_out(3 downto 0) when Rscrc = '0' else
-    I_out(15 downto 12);
+  rad2_port <= I_out(3 downto 0) when Rscrc = "00" else
+              I_out(15 downto 12) When Rscrc = "01" else
+              I_out(11 downto 8)
   wd_ref <= D_out when M2R = '1' else
     Re_out;
 
