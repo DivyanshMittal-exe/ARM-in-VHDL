@@ -190,9 +190,12 @@ begin
 
                     if set_cond = '1' then
                         Fset <= '1';
+                    elsif DP_subclass = comp or DP_subclass = test then
+                        Fset <= '1'; 
                     else
                         Fset <= '0';
                     end if;
+
                     if p_cond = '1' then
                         Rew           <= '1';
                     else 

@@ -27,15 +27,18 @@ begin
       else
         z_out <= '0';
       end if;
+
       n_out <= result(31);
+
       if op_code /= tst and op_code /= teq then 
         c_out <= carry;
       end if;
+
       if op_code = sub or op_code = cmp or op_code = sbc then
         v_out <= (a(31) and (not b(31)) and (not result(31))) or ((not a(31)) and (not b(31)) and (result(31)));
       elsif op_code = rsb or op_code = rsc then
         v_out <= ((not a(31)) and b(31) and (not result(31))) or ((not a(31)) and (not b(31)) and (result(31)));
-      elsif op_code /= tst and op_code /= teq then 
+      elsif op_code = add or op_code = adc or op_code = cmn then 
         v_out <= (a(31) and b(31) and (not result(31))) or ((not a(31)) and (not b(31)) and (result(31)));
       end if;
 

@@ -32,7 +32,7 @@ begin
                   std_logic_vector(rotate_right(unsigned(B), shift_by));
 
       
-    carry_out <=  B(31-shift_by) when Instr(6 downto 5) = "00" else
+    carry_out <=  B(31-shift_by) when Instr(6 downto 5) = "00" and  shift_by /= 0 else
                   B(shift_by-1) when shift_by /= 0 else
                   'X';
 

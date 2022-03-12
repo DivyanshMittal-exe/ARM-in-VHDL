@@ -11,11 +11,11 @@
     add r8, r0, r1, LSR r2
     add r9, r0, r1, ASR r2
     add r10, r0, r1, ROR r2
-    ldr r1, = AA                @To run in armsim, change it to ldr r1, = AA
-    str r0, [r1,#8]
-    ldr r11, [r1,#8]
-    str r2, [r1, r2, LSL #1]
-    ldr r12, [r1, r2, LSL #1]
+    @mov r1, 32                @To run in armsim, change it to ldr r1, = AA and 8 to align word
+    @str r0, [r1,#6]
+    @ldr r11, [r1,#6]
+    @str r2, [r1, r2, LSL #1]
+    @ldr r12, [r1, r2, LSL #1]
 .data
 AA: .space 200
 .end
