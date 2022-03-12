@@ -1,7 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use work.Mytypes.all;
-use IEEE.NUMERIC_STD.all;
+use ieee.numeric_std.all;
+use work.MyTypes.all;
+
 
 entity FSM is
     port (
@@ -87,7 +88,7 @@ begin
                 when get_ab =>
                     Debug <= "0001";
                     if instr_class = DT then
-                        if instruction(25) = '0' and instruction(4) ='0' then 
+                        if instruction(25) = '1' and instruction(4) ='0' then 
                             next_state <= load_ddp;
                         else
                             next_state <= str_or_ldr;

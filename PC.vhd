@@ -1,7 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
+use work.MyTypes.all;
 entity pc is
   port (
     clock: in std_logic;

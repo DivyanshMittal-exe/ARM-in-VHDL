@@ -1,5 +1,7 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
 package MyTypes is
     subtype word is std_logic_vector (31 downto 0);
     subtype hword is std_logic_vector (15 downto 0);

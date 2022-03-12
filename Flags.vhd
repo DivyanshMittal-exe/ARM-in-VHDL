@@ -1,8 +1,9 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
 use work.MyTypes.all;
+
+
 entity flag is
   port (
     f_set                      : in std_logic;
@@ -18,7 +19,7 @@ end flag;
 architecture arch of flag is
 begin
   
-  flag : process (f_set, op_code, carry, a, b, result)
+  flag_process : process (f_set, op_code, carry, a, b, result)
   begin
     if f_set = '1' then
       if result = x"00000000" then
