@@ -12,5 +12,5 @@ end rotator ;
 
 architecture arch of rotator is
 begin
-    oup <= std_logic_vector(rotate_right(unsigned(x"000000"&inp(7 downto 0)), to_integer(unsigned(inp(11 downto 8)&'0')));
+    oup <= std_logic_vector(rotate_right(signed(x"000000"&inp(7 downto 0)), to_integer(unsigned(inp(11 downto 8)&'0'))));
 end architecture ;

@@ -22,7 +22,7 @@ entity FSM is
         MW             : out std_logic;
         IW             : out std_logic;
         DW             : out std_logic;
-        Rscrc          : out std_logic_vector(1 downto 0);;
+        Rscrc          : out std_logic_vector(1 downto 0);
         M2R            : out std_logic;
         RW             : out std_logic;
         AW             : out std_logic;
@@ -32,8 +32,7 @@ entity FSM is
         Fset           : out std_logic;
         Rew            : out std_logic;
         DDPW            : out std_logic;
-        XDPW            : out std_logic;
-        DDP_MUX         : out std_logic
+        XDPW            : out std_logic
     );
 end FSM;
 
@@ -72,7 +71,7 @@ begin
             Rew           <= '0';
             DDPW          <= '0';
             XDPW          <= '0';
-            DDP_MUX       <= 'X';
+            -- DDP_MUX       <= 'X';
 
             operation_out <= operation_in;
             case current_state is
@@ -88,21 +87,22 @@ begin
                 when get_ab =>
                     Debug <= "0001";
                     if instr_class = DT then
-                        next_state <= str_or_ldr;
+                        if instruction(25) = '0' and instruction(4) ='0' then 
+                            next_state <= load_ddp;
+                        else
+                            next_state <= str_or_ldr;
+                        end if;
                     elsif instr_class = BRN then
                         next_state <= branch;
                     elsif instr_class = DP then
                         if instruction(25) = '0' and instruction(4) ='1' then
-                                next_state <= load_xdp;
-                        else 
-                                next_state <= load_ddp;
+                            next_state <= load_xdp;
+                        elsif instruction(25) = '0' and instruction(4) ='0' then 
+                            next_state <= load_ddp;
+                        else
+                            next_state <= dp;    
                         end if;
                     end if;
-                    -- if (instr_class = DT and load_store = store) then
-                    --     Rscrc <= '01';
-                    -- else
-                    --     Rscrc <= '00';
-                    -- end if;
 
                     AW <= '1';
                     BW <= '1';
@@ -117,7 +117,11 @@ begin
                     end if;
 
                     Asrc1 <= '1';
-                    Asrc2 <= "10";
+                    if instruction(25) = '0' then
+                        Asrc2 <= "10";
+                    else 
+                        Asrc2 <= "00";
+                    end if;
                     Rew   <= '1';
 
                     Rscrc <= "01";
@@ -163,15 +167,15 @@ begin
                 when load_xdp =>
                     next_state <= load_ddp;
                     Rscrc <= "10";
-                    XDP    <= '1';
+                    XDPW    <= '1';
                 when load_ddp =>
-                    next_state <= dp;
-                    DDPW      <= '1';
-                    if instruction(25) = '0' then 
-                        DDP_MUX <= '1'
-                    else 
-                        DDP_MUX <= '0'
+                    if instr_class = DT then
+                        next_state <= str_or_ldr;
+                    else
+                        next_state <= dp;
                     end if;
+
+                    DDPW      <= '1';
                         
                 when dp =>
                     Debug      <= "0111";

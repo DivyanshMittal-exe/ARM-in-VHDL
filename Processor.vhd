@@ -107,7 +107,7 @@ architecture arch of processor is
       MW             : out std_logic;
       IW             : out std_logic;
       DW             : out std_logic;
-      Rscrc          : out std_logic_vector(1 downto 0) ;;
+      Rscrc          : out std_logic_vector(1 downto 0) ;
       M2R            : out std_logic;
       RW             : out std_logic;
       AW             : out std_logic;
@@ -117,8 +117,7 @@ architecture arch of processor is
       Fset           : out std_logic;
       Rew            : out std_logic;
       DDPW           : out std_logic;
-      XDPW           : out std_logic;
-      DDP_MUX        : out std_logic
+      XDPW           : out std_logic
     );
   end component;
 
@@ -141,13 +140,19 @@ architecture arch of processor is
       D_out  : out std_logic_vector(31 downto 0);
       A_out  : out std_logic_vector(31 downto 0);
       B_out  : out std_logic_vector(31 downto 0);
-      Re_out : out std_logic_vector(31 downto 0)
+      Re_out : out std_logic_vector(31 downto 0);
+      DDPW : in std_logic;
+      DDP_in : in std_logic_vector(31 downto 0);
+      DDP_out : out std_logic_vector(31 downto 0);
+      XDPW : in std_logic;
+      XDP_in : in std_logic_vector(31 downto 0);
+      XDP_out : out std_logic_vector(31 downto 0)
     );
   end component;
 
   component rotator
     port (
-      inp           : in std_logic_vector(11 downto 0);
+      inp           : in std_logic_vector(31 downto 0);
       oup           : out std_logic_vector(31 downto 0);
       rotated_carry : out std_logic
 
@@ -204,7 +209,6 @@ architecture arch of processor is
   signal ReW             : std_logic;
   signal XDPW            : std_logic;
   signal DDPW            : std_logic;
-  signal I_in            : std_logic_vector(31 downto 0);
   signal D_in            : std_logic_vector(31 downto 0);
   signal A_in            : std_logic_vector(31 downto 0);
   signal B_in            : std_logic_vector(31 downto 0);
@@ -271,8 +275,7 @@ begin
     Fset           => Fset,
     Rew            => Rew,
     DDPW           => DDPW,
-    XDPW           => XDPW,
-    DDP_MUX        => DDP_MUX
+    XDPW           => XDPW
 
   );
 
@@ -293,7 +296,7 @@ begin
     Re_in   => ALU_out,
 
     XDP_in  => B_in,
-    DDP_in  => rotated_out when DDP_MUX = '0' else shifter_out,
+    DDP_in  => shifted_out,
 
     I_out   => I_out,
     D_out   => D_out,
@@ -387,21 +390,23 @@ begin
     carry_out   => shifter_carry
   );
 
-  ad_mem <= P_out(17 downto 2) when iORd = '0' else
-    Re_out(15 downto 0);
+  ad_mem <= "0000000" & P_out(10 downto 2) when iORd = '0' else
+            "0000000" & Re_out(8 downto 0) when iORd = '1' else
+            "0000000000000000";
   MW_vector <= "1111" when MW = '1' else
     "0000";
 
   rad2_port <= I_out(3 downto 0) when Rscrc = "00" else
-              I_out(15 downto 12) When Rscrc = "01" else
-              I_out(11 downto 8)
+              I_out(15 downto 12) when Rscrc = "01" else
+              I_out(11 downto 8);
   wd_ref <= D_out when M2R = '1' else
     Re_out;
 
   alu_op_1 <= P_out when Asrc1 = '0' else
     A_out;
-  alu_op_2 <= B_out when Asrc2 = "00" else
+  alu_op_2 <= DDP_out when Asrc2 = "00" else
     x"00000004" when Asrc2 = "01" else
+    rotated_out when Asrc2 = "10" and instr_class = DP else
     X"00000" & I_out(11 downto 0) when Asrc2 = "10" else
     std_logic_vector(unsigned("000000" & I_out(23 downto 0) & "00") + 4);
 

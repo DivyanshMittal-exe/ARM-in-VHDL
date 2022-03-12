@@ -24,10 +24,10 @@ entity IDAB_reg is
 
         DDPW : in std_logic;
         DDP_in : in std_logic_vector(31 downto 0);
-        DDP_out : in std_logic_vector(31 downto 0);
+        DDP_out : out std_logic_vector(31 downto 0);
         XDPW : in std_logic;
         XDP_in : in std_logic_vector(31 downto 0);
-        XDP_out : in std_logic_vector(31 downto 0)
+        XDP_out : out std_logic_vector(31 downto 0)
     );
 end IDAB_reg;
 
