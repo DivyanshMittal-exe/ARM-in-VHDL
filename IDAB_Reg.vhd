@@ -59,22 +59,6 @@ begin
             I <= I_in;
         end if;
     end process;
-
-    DREG_SET : process(  DW, D_in,signDT )
-    begin
-        writeBase <= x"00000000";
-        if signDT ='1' then
-            if DW(1) = '1' and D_in(15) = '1' then
-                writeBase <= x"ffffffff";
-            elsif DW(1) = '1' and D_in(15) = '0' then
-                writeBase <= x"00000000";
-            elsif DW(0) = '1' and D_in(7) = '1' then
-                writeBase <= x"ffffffff";
-            elsif DW(0) = '1' and D_in(7) = '0' then
-                writeBase <= x"00000000";      
-            end if ;
-        end if ;
-    end process ; -- DREG_SET
     
     process (clock, DW, D_in,signDT)
     begin
