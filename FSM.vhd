@@ -34,7 +34,8 @@ entity FSM is
         Rew            : out std_logic;
         DDPW            : out std_logic;
         XDPW            : out std_logic;
-        signDT          : out std_logic
+        signDT          : out std_logic;
+        wadMux          : out std_logic
     );
 end FSM;
 
@@ -72,6 +73,7 @@ begin
             DDPW          <= '0';
             XDPW          <= '0';
             signDT        <= 'X';
+            wadMux        <= '0';
             -- DDP_MUX       <= 'X';
 
             operation_out <= operation_in;
@@ -154,6 +156,7 @@ begin
 
                     if instruction(21) = '1'  or instruction(24) = '0' then
                         RW <= '1';
+                        wadMux        <= '1';
                         M2R <= '0';
                     end if;
                     
@@ -167,10 +170,10 @@ begin
                         if instruction(6 downto 5) = "01" then 
                             MW         <= "0011";
                             signDT     <=  '0';
-                        elsif instruction(6 downto 5) = "01" then
+                        elsif instruction(6 downto 5) = "10" then
                             MW         <= "0001";
                             signDT     <=  '1'; 
-                        elsif instruction(6 downto 5) = "01" then 
+                        elsif instruction(6 downto 5) = "11" then 
                             MW         <= "0011";
                             signDT     <=  '1';
                         end if;
@@ -188,6 +191,7 @@ begin
 
                     if instruction(21) = '1'  or instruction(24) = '0' then
                         RW <= '1';
+                        wadMux        <= '1';
                         M2R <= '0';
                     end if;
                     
@@ -202,10 +206,10 @@ begin
                         if instruction(6 downto 5) = "01" then 
                             DW         <= "0011";
                             signDT     <=  '0';
-                        elsif instruction(6 downto 5) = "01" then
+                        elsif instruction(6 downto 5) = "10" then
                             DW         <= "0001";
                             signDT     <=  '1'; 
-                        elsif instruction(6 downto 5) = "01" then 
+                        elsif instruction(6 downto 5) = "11" then 
                             DW         <= "0011";
                             signDT     <=  '1';
                         end if;
@@ -234,7 +238,7 @@ begin
                     Rscrc <= "10";
                     XDPW    <= '1';
                 when load_ddp =>
-                    if instr_class = DT then
+                    if instr_class = DT or instr_class = DTHR or instr_class = DTHI  then
                         next_state <= str_or_ldr;
                     else
                         next_state <= dp;

@@ -30,8 +30,7 @@ architecture arch of processor is
       ad    : in std_logic_vector(15 downto 0);
       rd    : out std_logic_vector(31 downto 0);
       MW    : in std_logic_vector(3 downto 0);
-      wd    : in std_logic_vector(31 downto 0);
-      signDT: in std_logic
+      wd    : in std_logic_vector(31 downto 0)
 
     );
   end component;
@@ -122,7 +121,9 @@ architecture arch of processor is
       Rew            : out std_logic;
       DDPW           : out std_logic;
       XDPW           : out std_logic;
-      signDT          : out std_logic
+      signDT          : out std_logic;
+      wadMux          : out std_logic
+
 
     );
   end component;
@@ -248,8 +249,11 @@ architecture arch of processor is
   signal rotated_carry   : std_logic;
 
   signal shifted_out     : std_logic_vector(31 downto 0);
+  signal data_write_ad     : std_logic_vector(3 downto 0);
   signal shifter_carry   : std_logic;
   signal signDT          : std_logic;
+  signal wadMux          : std_logic;
+  
 begin
 
   fsm_label : FSM port map(
@@ -283,7 +287,8 @@ begin
     Rew            => Rew,
     DDPW           => DDPW,
     XDPW           => XDPW,
-    signDT         => signDT
+    signDT         => signDT,
+    wadMux         => wadMux
 
 
   );
@@ -307,7 +312,7 @@ begin
     Re_in   => ALU_out,
 
     XDP_in  => B_in,
-    DDP_in  => shifted_out,
+    DDP_in  => DDP_in,
 
     I_out   => I_out,
     D_out   => D_out,
@@ -343,19 +348,18 @@ begin
     rd    => rd_mem,
     MW    => MW,
     ad    => ad_mem,
-    wd    => B_out,
-    signDT => signDT
+    wd    => B_out
   );
+
   Reg_label : Reg port map(
     clock    => clock,
     write_en => RW,
     r_ad_1   => I_out(19 downto 16),
     r_ad_2   => rad2_port,
-    write_1  => I_out(15 downto 12),
+    write_1  => data_write_ad,
     data     => wd_ref,
     r_da_1   => A_in,
     r_da_2   => B_in
-
   );
 
   ALU_label : ALU port map(
@@ -403,9 +407,13 @@ begin
     carry_out   => shifter_carry
   );
 
+  DDP_in <= B_out when instr_class = DTHR else shifted_out;
+
+  data_write_ad <= I_out(19 downto 16) when wadMux = '1' else I_out(15 downto 12);
+
   ad_mem <= "0000000" & P_out(10 downto 2) when iORd = "00" else
             "0000000" & Re_out(8 downto 0) when iORd = "01" else
-            "0000000" & A_out(8 downto 0) when iORd = "01" else
+            "0000000" & A_out(8 downto 0) when iORd = "10" else
             "0000000000000000";
 
   rad2_port <= I_out(3 downto 0) when Rscrc = "00" else
@@ -419,7 +427,8 @@ begin
   alu_op_2 <= DDP_out when Asrc2 = "00" else
     x"00000004" when Asrc2 = "01" else
     rotated_out when Asrc2 = "10" and instr_class = DP else
-    X"00000" & I_out(11 downto 0) when Asrc2 = "10" else
+    X"000000" & I_out(11 downto 8)& I_out(3 downto 0) when Asrc2 = "10" and instr_class = DTHI else
+    X"00000" & I_out(11 downto 0) when Asrc2 = "10"  else
     std_logic_vector(unsigned("000000" & I_out(23 downto 0) & "00") + 4);
 
 end architecture;

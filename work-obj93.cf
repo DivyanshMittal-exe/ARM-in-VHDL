@@ -1,46 +1,46 @@
 v 4
-file . "TB.vhd" "8ca9d86c10dcf8fedd14b48f829b06cd2b4d15ad" "20220319134512.593":
-  entity tb at 2( 1) + 0 on 823;
-  architecture behavior of tb at 10( 115) + 0 on 824;
-file . "Shifter.vhd" "84d8e23f4264b7246b76c270a000e945207672f8" "20220319134512.592":
-  entity shifter at 1( 0) + 0 on 821;
-  architecture arch of shifter at 17( 356) + 0 on 822;
-file . "Rotator.vhd" "5ebe3ef7e75f9eafed62e8917b0d0e8eb0f2946e" "20220319134512.590":
-  entity rotator at 1( 0) + 0 on 819;
-  architecture arch of rotator at 14( 262) + 0 on 820;
-file . "Register.vhd" "9c278659ce5e445c48f34824354354eb13eb9d8a" "20220319134512.586":
-  entity reg at 1( 0) + 0 on 815;
-  architecture reg_arch of reg at 18( 447) + 0 on 816;
-file . "Processor.vhd" "b00b869bdc25e1258d029ee883809ce8083b3747" "20220319134512.523":
-  entity processor at 2( 1) + 0 on 797;
-  architecture arch of processor at 15( 195) + 0 on 798;
-file . "PC.vhd" "ed834a464ddf47d448008e254f7c6e8e69698292" "20220319134512.569":
-  entity pc at 1( 0) + 0 on 813;
-  architecture arch of pc at 16( 297) + 0 on 814;
-file . "Instr.vhd" "f42ed4d3e57decc8dcb8a65d7da43ca2de7cd16a" "20220319134512.537":
-  entity decoder at 1( 0) + 0 on 803;
-  architecture behavioral of decoder at 20( 533) + 0 on 804;
-file . "IDAB_Reg.vhd" "7102a08973f7efc8ad7c400853a22b86b02611f5" "20220319134512.531":
-  entity idab_reg at 1( 0) + 0 on 801;
-  architecture idab_reg_arch of idab_reg at 37( 1161) + 0 on 802;
-file . "FSM.vhd" "d422f341c312379c8d1d9eec151cf9f8f72046ee" "20220319134512.527":
-  entity fsm at 1( 0) + 0 on 799;
-  architecture behaviour of fsm at 41( 1442) + 0 on 800;
-file . "Flags.vhd" "e3ba0d12343f4e5166e33b393bc25d7fd26d6c28" "20220319134512.562":
-  entity flag at 1( 0) + 0 on 805;
-  architecture arch of flag at 19( 519) + 0 on 806;
-file . "data_mem.vhd" "ec8659490a41ae3c661c710488aa70ef69d29fdc" "20220319134512.568":
-  entity data_mem at 1( 0) + 0 on 811;
-  architecture arch of data_mem at 17( 404) + 0 on 812;
-file . "Cond.vhd" "ab8cc54f462519d49b68794cabba30ee02dee2af" "20220319134512.565":
-  entity cond at 1( 0) + 0 on 809;
-  architecture arch of cond at 13( 241) + 0 on 810;
-file . "ALU.vhd" "9ee8b422785a91c0a7dce6d08163c56a95c6d0d2" "20220319134512.564":
-  entity alu at 1( 0) + 0 on 807;
-  architecture alu_arch of alu at 17( 326) + 0 on 808;
-file . "MyTypes.vhd" "62c150318f5ee6f23e2666f44c830f81b6021db0" "20220319134512.518":
-  package mytypes at 1( 0) + 0 on 795;
-  package body mytypes at 20( 817) + 0 on 796;
-file . "shifterbyi.vhd" "e940b6bb5d219e7675ebb7541bb3a3b5ac185d94" "20220319134512.589":
-  entity shifter_byi at 2( 1) + 0 on 817;
-  architecture arch of shifter_byi at 17( 377) + 2 on 818;
+file . "shifterbyi.vhd" "e940b6bb5d219e7675ebb7541bb3a3b5ac185d94" "20220319165424.378":
+  entity shifter_byi at 2( 1) + 0 on 1267;
+  architecture arch of shifter_byi at 17( 377) + 2 on 1268;
+file . "MyTypes.vhd" "62c150318f5ee6f23e2666f44c830f81b6021db0" "20220319165424.346":
+  package mytypes at 1( 0) + 0 on 1245;
+  package body mytypes at 20( 817) + 0 on 1246;
+file . "ALU.vhd" "9ee8b422785a91c0a7dce6d08163c56a95c6d0d2" "20220319165424.368":
+  entity alu at 1( 0) + 0 on 1257;
+  architecture alu_arch of alu at 17( 326) + 0 on 1258;
+file . "Cond.vhd" "ab8cc54f462519d49b68794cabba30ee02dee2af" "20220319165424.369":
+  entity cond at 1( 0) + 0 on 1259;
+  architecture arch of cond at 13( 241) + 0 on 1260;
+file . "data_mem.vhd" "388efa39dcc1ab05835f76a7d5ea87a3e46a3301" "20220319165424.372":
+  entity data_mem at 1( 0) + 0 on 1261;
+  architecture arch of data_mem at 16( 373) + 0 on 1262;
+file . "Flags.vhd" "e3ba0d12343f4e5166e33b393bc25d7fd26d6c28" "20220319165424.365":
+  entity flag at 1( 0) + 0 on 1255;
+  architecture arch of flag at 19( 519) + 0 on 1256;
+file . "FSM.vhd" "e4a396b0afbf45b4edfb3af50d39c711fcbb8663" "20220319165424.354":
+  entity fsm at 1( 0) + 0 on 1249;
+  architecture behaviour of fsm at 42( 1483) + 0 on 1250;
+file . "IDAB_Reg.vhd" "ffb41df61968c671ddf7ea92e4d78103b8485800" "20220319165424.359":
+  entity idab_reg at 1( 0) + 0 on 1251;
+  architecture idab_reg_arch of idab_reg at 37( 1161) + 0 on 1252;
+file . "Instr.vhd" "f42ed4d3e57decc8dcb8a65d7da43ca2de7cd16a" "20220319165424.361":
+  entity decoder at 1( 0) + 0 on 1253;
+  architecture behavioral of decoder at 20( 533) + 0 on 1254;
+file . "PC.vhd" "ed834a464ddf47d448008e254f7c6e8e69698292" "20220319165424.373":
+  entity pc at 1( 0) + 0 on 1263;
+  architecture arch of pc at 16( 297) + 0 on 1264;
+file . "Processor.vhd" "e0709126dfc0a9b244c5e844f9b2592637f3f1fd" "20220319165424.350":
+  entity processor at 2( 1) + 0 on 1247;
+  architecture arch of processor at 15( 195) + 0 on 1248;
+file . "Register.vhd" "9c278659ce5e445c48f34824354354eb13eb9d8a" "20220319165424.374":
+  entity reg at 1( 0) + 0 on 1265;
+  architecture reg_arch of reg at 18( 447) + 0 on 1266;
+file . "Rotator.vhd" "5ebe3ef7e75f9eafed62e8917b0d0e8eb0f2946e" "20220319165424.380":
+  entity rotator at 1( 0) + 0 on 1269;
+  architecture arch of rotator at 14( 262) + 0 on 1270;
+file . "Shifter.vhd" "84d8e23f4264b7246b76c270a000e945207672f8" "20220319165424.382":
+  entity shifter at 1( 0) + 0 on 1271;
+  architecture arch of shifter at 17( 356) + 0 on 1272;
+file . "TB.vhd" "755216c80463f251644bc7df49b959469d10edf9" "20220319165424.383":
+  entity tb at 2( 1) + 0 on 1273;
+  architecture behavior of tb at 10( 115) + 0 on 1274;

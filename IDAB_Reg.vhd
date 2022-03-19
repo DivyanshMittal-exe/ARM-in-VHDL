@@ -78,14 +78,28 @@ begin
     
     process (clock, DW, D_in,signDT)
     begin
+        writeBase <= x"00000000";
+
+            if signDT ='1' then
+                if DW(1) = '1' and D_in(15) = '1' then
+                    writeBase <= x"ffffffff";
+                elsif DW(1) = '1' and D_in(15) = '0' then
+                    writeBase <= x"00000000";
+                elsif DW(0) = '1' and D_in(7) = '1' then
+                    writeBase <= x"ffffffff";
+                elsif DW(0) = '1' and D_in(7) = '0' then
+                    writeBase <= x"00000000";      
+                end if ;
+            end if ;
+
         if rising_edge(clock) then
+            D <= writeBase;
+
             if DW = "1111" then
                 D <= D_in;
             elsif DW = "0011" then
-                D(31 downto 16) <= writeBase(31 downto 16);
                 D(15 downto 0) <= D_in(15 downto 0);
             elsif DW = "0001" then
-                D(31 downto 8) <= writeBase(31 downto 8);
                 D(7 downto 0) <= D_in(7 downto 0);
             end if;
         end if;
