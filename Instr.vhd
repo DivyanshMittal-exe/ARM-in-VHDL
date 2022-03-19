@@ -28,7 +28,10 @@ architecture Behavioral of Decoder is
     (eq, ne, cs, cc, mi, pl, vs, vc, hi, ls, ge, lt, gt, le, al);
 begin
     
-    instr_class <= DP when instruction (27 downto 26) =  "00" else
+    instr_class <=
+        DTHR when instruction(27 downto 25) = "000" and instruction(22) = '0'  and instruction(7) = '1' and instruction(4) = '1' else 
+        DTHI when instruction(27 downto 25) = "000" and instruction(22) = '1' and instruction(7) = '1' and instruction(4) = '1' else 
+        DP when instruction (27 downto 26) =  "00" else
         DT when instruction (27 downto 26) = "01" else 
         BRN when instruction (27 downto 26) = "10" else
         none;

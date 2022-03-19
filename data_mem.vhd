@@ -9,7 +9,8 @@ entity data_mem is
         ad    : in std_logic_vector(15 downto 0);
         rd    : out std_logic_vector(31 downto 0);
         MW    : in std_logic_vector(3 downto 0);
-        wd    : in std_logic_vector(31 downto 0)
+        wd    : in std_logic_vector(31 downto 0);
+        signDT : in std_logic
     );
 end data_mem;
 
@@ -34,22 +35,35 @@ architecture arch of data_mem is
         15 => X"E791B082",
         others => X"00000000"
     );
+    signal writeBase : std_logic_vector(31 downto 0) := x"00000000";
 begin
+    WRITING : process( ad,MW,wd,signDT )
+    begin
+        writeBase <= x"00000000";
+        if signDT ='1' then
+            if MW(1) = '1' and wd(15) = '1' then
+                writeBase <= x"ffffffff";
+            elsif MW(1) = '1' and wd(15) = '0' then
+                writeBase <= x"00000000";
+            elsif MW(0) = '1' and wd(7) = '1' then
+                writeBase <= x"ffffffff";
+            elsif MW(0) = '1' and wd(7) = '0' then
+                writeBase <= x"00000000";      
+            end if ;
+        end if ;
+    end process ; -- WRITING
     rd <= data(to_integer(unsigned(ad)));
 
     write : process (clock)
     begin
         if rising_edge(clock) then
-            if MW(3) = '1' then
-                data(to_integer(unsigned(ad)))(31 downto 24) <= wd(31 downto 24);
-            end if;
-            if MW(2) = '1' then
-                data(to_integer(unsigned(ad)))(23 downto 16) <= wd(23 downto 16);
-            end if;
-            if MW(1) = '1' then
-                data(to_integer(unsigned(ad)))(15 downto 8) <= wd(15 downto 8);
-            end if;
-            if MW(0) = '1' then
+            if MW = "1111" then
+                data(to_integer(unsigned(ad))) <= wd;
+            elsif MW = "0011" then
+                data(to_integer(unsigned(ad)))(31 downto 16) <= writeBase(31 downto 16);
+                data(to_integer(unsigned(ad)))(15 downto 0) <= wd(15 downto 0);
+            elsif MW = "0001" then
+                data(to_integer(unsigned(ad)))(31 downto 8) <= writeBase(31 downto 8);
                 data(to_integer(unsigned(ad)))(7 downto 0) <= wd(7 downto 0);
             end if;
         end if;

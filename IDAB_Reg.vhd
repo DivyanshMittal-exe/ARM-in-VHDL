@@ -8,7 +8,7 @@ entity IDAB_reg is
     port (
         clock: in std_logic;
         IW     : in std_logic;
-        DW     : in std_logic;
+        DW     : in std_logic_vector(3 downto 0);
         AW     : in std_logic;
         BW     : in std_logic;
         ReW    : in std_logic;
@@ -28,7 +28,9 @@ entity IDAB_reg is
         DDP_out : out std_logic_vector(31 downto 0);
         XDPW : in std_logic;
         XDP_in : in std_logic_vector(31 downto 0);
-        XDP_out : out std_logic_vector(31 downto 0)
+        XDP_out : out std_logic_vector(31 downto 0);
+        signDT : in std_logic
+
     );
 end IDAB_reg;
 
@@ -40,6 +42,8 @@ architecture IDAB_reg_arch of IDAB_reg is
     signal Re : std_logic_vector(31 downto 0) := x"00000000";
     signal DDP : std_logic_vector(31 downto 0) := x"00000000";
     signal XDP : std_logic_vector(31 downto 0) := x"00000000";
+    signal writeBase : std_logic_vector(31 downto 0) := x"00000000";
+
 begin
     I_out  <= I;
     D_out  <= D;
@@ -56,11 +60,36 @@ begin
         end if;
     end process;
 
-    process (clock, DW, D_in)
+    DREG_SET : process(  DW, D_in,signDT )
     begin
-        if DW = '1' and rising_edge(clock) then
-            D <= D_in;
+        writeBase <= x"00000000";
+        if signDT ='1' then
+            if DW(1) = '1' and D_in(15) = '1' then
+                writeBase <= x"ffffffff";
+            elsif DW(1) = '1' and D_in(15) = '0' then
+                writeBase <= x"00000000";
+            elsif DW(0) = '1' and D_in(7) = '1' then
+                writeBase <= x"ffffffff";
+            elsif DW(0) = '1' and D_in(7) = '0' then
+                writeBase <= x"00000000";      
+            end if ;
+        end if ;
+    end process ; -- DREG_SET
+    
+    process (clock, DW, D_in,signDT)
+    begin
+        if rising_edge(clock) then
+            if DW = "1111" then
+                D <= D_in;
+            elsif DW = "0011" then
+                D(31 downto 16) <= writeBase(31 downto 16);
+                D(15 downto 0) <= D_in(15 downto 0);
+            elsif DW = "0001" then
+                D(31 downto 8) <= writeBase(31 downto 8);
+                D(7 downto 0) <= D_in(7 downto 0);
+            end if;
         end if;
+        
     end process;
 
     process (clock, AW, A_in)

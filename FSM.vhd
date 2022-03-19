@@ -19,10 +19,10 @@ entity FSM is
         operation_in   : in optype;
         operation_out  : out optype;
         PW             : out std_logic;
-        iORd           : out std_logic;
-        MW             : out std_logic;
+        iORd           : out std_logic_vector(1 DOWNTO 0);
+        MW             : out std_logic_vector(3 downto 0);
         IW             : out std_logic;
-        DW             : out std_logic;
+        DW             : out std_logic_vector(3 downto 0);
         Rscrc          : out std_logic_vector(1 downto 0);
         M2R            : out std_logic;
         RW             : out std_logic;
@@ -33,7 +33,8 @@ entity FSM is
         Fset           : out std_logic;
         Rew            : out std_logic;
         DDPW            : out std_logic;
-        XDPW            : out std_logic
+        XDPW            : out std_logic;
+        signDT          : out std_logic
     );
 end FSM;
 
@@ -41,8 +42,6 @@ architecture behaviour of FSM is
     type state_enum is (start, get_ab, str_or_ldr, str, ldr, rf_ldr,load_xdp,load_ddp, branch, dp, rf_dp);
     signal current_state : state_enum;
     signal next_state    : state_enum := start;
-    -- Debug signal helps in debugging which state of FSM I am in currently
-    signal Debug         : std_logic_vector(3 downto 0);
 begin
     process (clock, next_state)
     begin
@@ -57,10 +56,10 @@ begin
             next_state <= start;
         else
             PW            <= '0';
-            iORd          <= '0';
-            MW            <= '0';
+            iORd          <= "00";
+            MW            <= "0000";
             IW            <= '0';
-            DW            <= '0';
+            DW            <=  "0000";
             Rscrc         <= "00";
             M2R           <= 'X';
             RW            <= '0';
@@ -72,21 +71,22 @@ begin
             Rew           <= '0';
             DDPW          <= '0';
             XDPW          <= '0';
+            signDT        <= 'X';
             -- DDP_MUX       <= 'X';
 
             operation_out <= operation_in;
             case current_state is
                 when start =>
-                    Debug         <= "0000";
+                    
                     next_state    <= get_ab;
                     PW            <= '1';
-                    iORd          <= '0';
+                    iORd          <= "00";
                     IW            <= '1';
                     Asrc1         <= '0';
                     Asrc2         <= "01";
                     operation_out <= add;
                 when get_ab =>
-                    Debug <= "0001";
+                    
                     if instr_class = DT then
                         if instruction(25) = '1' and instruction(4) ='0' then 
                             next_state <= load_ddp;
@@ -103,14 +103,17 @@ begin
                         else
                             next_state <= dp;    
                         end if;
+                    elsif instr_class = DTHR then
+                        next_state <= load_ddp;
+                    elsif instr_class = DTHI then 
+                        next_state <= str_or_ldr;
                     end if;
+
 
                     AW <= '1';
                     BW <= '1';
 
                 when str_or_ldr =>
-                    Debug <= "0010";
-
                     if load_store = store then
                         next_state <= str;
                     else
@@ -118,10 +121,15 @@ begin
                     end if;
 
                     Asrc1 <= '1';
-                    if instruction(25) = '0' then
+                    if instr_class = DT and instruction(25) = '0' then
                         Asrc2 <= "10";
-                    else 
+                    elsif instr_class = DT and instruction(25) = '1' then 
                         Asrc2 <= "00";
+                    elsif instr_class = DTHR then
+                        Asrc2 <= "00";
+                    elsif instr_class = DTHI then 
+                        Asrc2 <= "10";
+                         
                     end if;
                     Rew   <= '1';
 
@@ -136,25 +144,81 @@ begin
                     end if;
 
                 when str =>
-                    Debug      <= "0011";
-
                     next_state <= start;
-                    iORd       <= '1';
-                    MW         <= '1';
+
+                    if instruction(24) = '1' then
+                        iORd       <= "01";
+                    else
+                        iORd       <= "10";   
+                    end if;
+
+                    if instruction(21) = '1'  or instruction(24) = '0' then
+                        RW <= '1';
+                        M2R <= '0';
+                    end if;
+                    
+                    if instr_class = DT and instruction(22) = '0' then
+                        MW         <= "1111";
+                        signDT     <=  '0';
+                    elsif instr_class = DT and instruction(22) = '1' then
+                        MW         <= "0001";
+                        signDT     <=  '0';
+                    elsif instr_class = DTHR or instr_class = DTHI then
+                        if instruction(6 downto 5) = "01" then 
+                            MW         <= "0011";
+                            signDT     <=  '0';
+                        elsif instruction(6 downto 5) = "01" then
+                            MW         <= "0001";
+                            signDT     <=  '1'; 
+                        elsif instruction(6 downto 5) = "01" then 
+                            MW         <= "0011";
+                            signDT     <=  '1';
+                        end if;
+                    end if; 
+
                 when ldr =>
-                    Debug      <= "0100";
+                    
                     next_state <= rf_ldr;
-                    iORd       <= '1';
-                    DW         <= '1';
+                    
+                    if instruction(24) = '1' then
+                        iORd       <= "01";
+                    else
+                        iORd       <= "10";   
+                    end if;
+
+                    if instruction(21) = '1'  or instruction(24) = '0' then
+                        RW <= '1';
+                        M2R <= '0';
+                    end if;
+                    
+                    
+                    if instr_class = DT and instruction(22) = '0' then
+                        DW         <= "1111";
+                        signDT     <=  '0';
+                    elsif instr_class = DT and instruction(22) = '1' then
+                        DW         <= "0001";
+                        signDT     <=  '0';
+                    elsif instr_class = DTHR or instr_class = DTHI then
+                        if instruction(6 downto 5) = "01" then 
+                            DW         <= "0011";
+                            signDT     <=  '0';
+                        elsif instruction(6 downto 5) = "01" then
+                            DW         <= "0001";
+                            signDT     <=  '1'; 
+                        elsif instruction(6 downto 5) = "01" then 
+                            DW         <= "0011";
+                            signDT     <=  '1';
+                        end if;
+                    end if; 
 
                 when rf_ldr =>
-                    Debug      <= "0101";
+                    
                     next_state <= start;
                     M2R        <= '1';
                     RW         <= '1';
 
                 when branch =>
-                    Debug      <= "0110";
+                    
                     next_state <= start;
                     if p_cond = '1' then
                         PW <= '1';
@@ -179,7 +243,7 @@ begin
                     DDPW      <= '1';
                         
                 when dp =>
-                    Debug      <= "0111";
+                    
                     next_state <= rf_dp;
                     Asrc1      <= '1';
                     if DP_operand_src = reg then
@@ -204,7 +268,7 @@ begin
                     operation_out <= operation_in;
 
                 when rf_dp =>
-                    Debug      <= "1000";
+                    
                     next_state <= start;
                     M2R        <= '0';
                     if DP_subclass = arith or  DP_subclass = logic then 

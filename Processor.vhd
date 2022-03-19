@@ -30,7 +30,9 @@ architecture arch of processor is
       ad    : in std_logic_vector(15 downto 0);
       rd    : out std_logic_vector(31 downto 0);
       MW    : in std_logic_vector(3 downto 0);
-      wd    : in std_logic_vector(31 downto 0)
+      wd    : in std_logic_vector(31 downto 0);
+      signDT: in std_logic
+
     );
   end component;
 
@@ -105,10 +107,10 @@ architecture arch of processor is
       operation_in   : in optype;
       operation_out  : out optype;
       PW             : out std_logic;
-      iORd           : out std_logic;
-      MW             : out std_logic;
+      iORd           : out std_logic_vector(1 downto 0);
+      MW             : out std_logic_vector(3 downto 0) ;
       IW             : out std_logic;
-      DW             : out std_logic;
+      DW             : out std_logic_vector(3 downto 0);
       Rscrc          : out std_logic_vector(1 downto 0) ;
       M2R            : out std_logic;
       RW             : out std_logic;
@@ -119,7 +121,9 @@ architecture arch of processor is
       Fset           : out std_logic;
       Rew            : out std_logic;
       DDPW           : out std_logic;
-      XDPW           : out std_logic
+      XDPW           : out std_logic;
+      signDT          : out std_logic
+
     );
   end component;
 
@@ -127,7 +131,7 @@ architecture arch of processor is
     port (
       clock  : in std_logic;
       IW     : in std_logic;
-      DW     : in std_logic;
+      DW     : in std_logic_vector(3 downto 0) ;
       AW     : in std_logic;
       BW     : in std_logic;
       ReW    : in std_logic;
@@ -148,7 +152,8 @@ architecture arch of processor is
       DDP_out : out std_logic_vector(31 downto 0);
       XDPW : in std_logic;
       XDP_in : in std_logic_vector(31 downto 0);
-      XDP_out : out std_logic_vector(31 downto 0)
+      XDP_out : out std_logic_vector(31 downto 0);
+      signDT : in std_logic
     );
   end component;
 
@@ -194,9 +199,8 @@ architecture arch of processor is
   signal operation_alu   : optype;
 
   signal PW              : std_logic;
-  signal iORd            : std_logic;
-  signal MW              : std_logic;
-  signal MW_vector       : std_logic_vector(3 downto 0);
+  signal iORd            : std_logic_vector(1 downto 0);
+  signal MW              : std_logic_vector(3 downto 0);
 
   signal Rscrc           : std_logic_vector(1 downto 0);
   signal M2R             : std_logic;
@@ -205,7 +209,7 @@ architecture arch of processor is
   signal Asrc2           : std_logic_vector(1 downto 0);
   signal Fset            : std_logic;
   signal IW              : std_logic;
-  signal DW              : std_logic;
+  signal DW              : std_logic_vector(3 downto 0);
   signal AW              : std_logic;
   signal BW              : std_logic;
   signal ReW             : std_logic;
@@ -245,6 +249,7 @@ architecture arch of processor is
 
   signal shifted_out     : std_logic_vector(31 downto 0);
   signal shifter_carry   : std_logic;
+  signal signDT          : std_logic;
 begin
 
   fsm_label : FSM port map(
@@ -277,7 +282,9 @@ begin
     Fset           => Fset,
     Rew            => Rew,
     DDPW           => DDPW,
-    XDPW           => XDPW
+    XDPW           => XDPW,
+    signDT         => signDT
+
 
   );
 
@@ -290,6 +297,8 @@ begin
     ReW     => ReW,
     DDPW    => DDPW,
     XDPW    => XDPW,
+
+    signDT => signDT,
 
     I_in    => rd_mem,
     D_in    => rd_mem,
@@ -307,6 +316,7 @@ begin
     XDP_out => XDP_out,
     DDP_out => DDP_out,
     Re_out  => Re_out
+
   );
   Decoder_label : Decoder port map(
     instruction    => I_out,
@@ -331,9 +341,10 @@ begin
   data_mem_label : data_mem port map(
     clock => clock,
     rd    => rd_mem,
-    MW    => MW_vector,
+    MW    => MW,
     ad    => ad_mem,
-    wd    => B_out
+    wd    => B_out,
+    signDT => signDT
   );
   Reg_label : Reg port map(
     clock    => clock,
@@ -392,11 +403,10 @@ begin
     carry_out   => shifter_carry
   );
 
-  ad_mem <= "0000000" & P_out(10 downto 2) when iORd = '0' else
-            "0000000" & Re_out(8 downto 0) when iORd = '1' else
+  ad_mem <= "0000000" & P_out(10 downto 2) when iORd = "00" else
+            "0000000" & Re_out(8 downto 0) when iORd = "01" else
+            "0000000" & A_out(8 downto 0) when iORd = "01" else
             "0000000000000000";
-  MW_vector <= "1111" when MW = '1' else
-    "0000";
 
   rad2_port <= I_out(3 downto 0) when Rscrc = "00" else
               I_out(15 downto 12) when Rscrc = "01" else
