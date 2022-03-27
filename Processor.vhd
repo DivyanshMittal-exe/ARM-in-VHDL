@@ -46,6 +46,17 @@ architecture arch of processor is
     );
   end component;
 
+  component multiplier
+    port (
+      instr_class    : in instr_class_type;
+      A              : IN std_logic_vector(31 downto 0) ;
+      B              : IN std_logic_vector(31 downto 0) ;
+      C              : IN std_logic_vector(31 downto 0) ;
+      D              : IN std_logic_vector(31 downto 0) ;
+      MulRes         : out std_logic_vector(63 downto 0)
+    ) ;
+  end component ;
+
   component Decoder
     port (
       instruction    : in word;
@@ -178,6 +189,8 @@ architecture arch of processor is
     );
   end component;
 
+  
+
   signal br              : std_logic                     := '0';
   signal ofst            : std_logic_vector(23 downto 0) := "000000000000000000000000";
   signal prog_c          : std_logic_vector(7 downto 0)  := "00000000";
@@ -249,10 +262,12 @@ architecture arch of processor is
   signal rotated_carry   : std_logic;
 
   signal shifted_out     : std_logic_vector(31 downto 0);
-  signal data_write_ad     : std_logic_vector(3 downto 0);
+  signal data_write_ad   : std_logic_vector(3 downto 0);
   signal shifter_carry   : std_logic;
   signal signDT          : std_logic;
   signal wadMux          : std_logic;
+  signal AMUX          : std_logic;
+  signal MulRes          : std_logic_vector(63 downto 0);
   
 begin
 
@@ -288,10 +303,20 @@ begin
     DDPW           => DDPW,
     XDPW           => XDPW,
     signDT         => signDT,
-    wadMux         => wadMux
+    wadMux         => wadMux,
+    AMUX           => AMUX
 
 
   );
+
+  multiplier_label: multiplier port map(
+    instr_class   => instr_class,
+    A              : B_out,
+    B              : XDP_out,
+    C              : IA_out,
+    D              : DDP_out,
+    MulRes         : MulRes
+  ) ;
 
   IDAB_reg_label : IDAB_reg port map(
     clock   => clock,
@@ -311,7 +336,7 @@ begin
     B_in    => B_in,
     Re_in   => ALU_out,
 
-    XDP_in  => B_in,
+    XDP_in  => XDP_in,
     DDP_in  => DDP_in,
 
     I_out   => I_out,
@@ -354,7 +379,7 @@ begin
   Reg_label : Reg port map(
     clock    => clock,
     write_en => RW,
-    r_ad_1   => I_out(19 downto 16),
+    r_ad_1   => rad1_port ,
     r_ad_2   => rad2_port,
     write_1  => data_write_ad,
     data     => wd_ref,
@@ -407,7 +432,12 @@ begin
     carry_out   => shifter_carry
   );
 
-  DDP_in <= B_out when instr_class = DTHR else shifted_out;
+  DDP_in <= B_out when instr_class = DTHR else
+            r_da_2 when instr_class = MUL or  instr_class = MLA or  instr_class = SMULL or  instr_class = SMLAL or  instr_class = UMULL or  instr_class = UMLAL else
+            else shifted_out;
+
+  XDP_in <= r_da_1 when instr_class = MUL or  instr_class = MLA or  instr_class = SMULL or  instr_class = SMLAL or  instr_class = UMULL or  instr_class = UMLAL else
+            B_in 
 
   data_write_ad <= I_out(19 downto 16) when wadMux = '1' else I_out(15 downto 12);
 
@@ -416,11 +446,18 @@ begin
             "0000000" & A_out(8 downto 0) when iORd = "10" else
             "0000000000000000";
 
-  rad2_port <= I_out(3 downto 0) when Rscrc = "00" else
-              I_out(15 downto 12) when Rscrc = "01" else
-              I_out(11 downto 8);
-  wd_ref <= D_out when M2R = '1' else
-    Re_out;
+  rad2_port <=  I_out(3 downto 0) when Rscrc = "00" else
+                I_out(15 downto 12) when Rscrc = "01" else
+                I_out(11 downto 8);
+
+  rad1_port <= I_out(19 downto 16) when AMUX = '0'
+              else I_out(11 downto 8);
+  
+  wd_ref <= MulRes(31 downto 0) when instr_class = MUL or  instr_class = MLA else 
+            MulRes(63 downto 32) when (instr_class = SMULL or  instr_class = SMLAL or  instr_class = UMULL or  instr_class = UMLAL) and wadMux = '1' else
+            MulRes(31 downto 0) when (instr_class = SMULL or  instr_class = SMLAL or  instr_class = UMULL or  instr_class = UMLAL) and wadMux = '0' else
+            D_out when M2R = '1' else
+            Re_out;
 
   alu_op_1 <= P_out when Asrc1 = '0' else
     A_out;

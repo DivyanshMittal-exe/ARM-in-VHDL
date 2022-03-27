@@ -9,7 +9,7 @@ package MyTypes is
     subtype nibble is std_logic_vector (3 downto 0);
     subtype bit_pair is std_logic_vector (1 downto 0);
     type optype is (andop, eor, sub, rsb, add, adc, sbc, rsc, tst, teq, cmp, cmn, orr, mov, bic, mvn);
-    type instr_class_type is (DP, DT, MUL, BRN,DTHR,DTHI, none);
+    type instr_class_type is (DP, DT, MUL, BRN,DTHR,DTHI,MUL,MLA,UMULL,UMLAL,SMULL,SMLAL, none);
     type DP_subclass_type is (arith, logic, comp, test, none);
     type DP_operand_src_type is (reg, imm);
     type load_store_type is (load, store);

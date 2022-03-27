@@ -29,6 +29,16 @@ architecture Behavioral of Decoder is
 begin
     
     instr_class <=
+
+        MUL when instruction(27 DOWNTO 21) = "0000000" AND instruction(7 downto 4) = "1001" else
+        MLA when instruction(27 DOWNTO 21) = "0000001" AND instruction(7 downto 4) = "1001" else
+
+        UMULL when instruction(27 DOWNTO 21) = "0000100" AND instruction(7 downto 4) = "1001" else
+        SMULL when instruction(27 DOWNTO 21) = "0000110" AND instruction(7 downto 4) = "1001" else
+
+        UMLAL when instruction(27 DOWNTO 21) = "0000101" AND instruction(7 downto 4) = "1001" else
+        MLA when instruction(27 DOWNTO 21) = "0000111" AND instruction(7 downto 4) = "1001" else
+
         DTHR when instruction(27 downto 25) = "000" and instruction(22) = '0'  and instruction(7) = '1' and instruction(4) = '1' else 
         DTHI when instruction(27 downto 25) = "000" and instruction(22) = '1' and instruction(7) = '1' and instruction(4) = '1' else 
         DP when instruction (27 downto 26) =  "00" else

@@ -35,12 +35,13 @@ entity FSM is
         DDPW            : out std_logic;
         XDPW            : out std_logic;
         signDT          : out std_logic;
-        wadMux          : out std_logic
+        wadMux          : out std_logic;
+        AMUX          : out std_logic
     );
 end FSM;
 
 architecture behaviour of FSM is
-    type state_enum is (start, get_ab, str_or_ldr, str, ldr, rf_ldr,load_xdp,load_ddp, branch, dp, rf_dp);
+    type state_enum is (start, get_ab, str_or_ldr, str, ldr, rf_ldr,load_xdp,load_ddp, branch, dp, rf_dp,mulmuliplynow,mulmode,muliplynow2);
     signal current_state : state_enum;
     signal next_state    : state_enum := start;
 begin
@@ -74,6 +75,7 @@ begin
             XDPW          <= '0';
             signDT        <= 'X';
             wadMux        <= '0';
+            AMUX          <= '0';
             -- DDP_MUX       <= 'X';
 
             operation_out <= operation_in;
@@ -109,6 +111,8 @@ begin
                         next_state <= load_ddp;
                     elsif instr_class = DTHI then 
                         next_state <= str_or_ldr;
+                    elsif instr_class = MUL or  instr_class = MLA or  instr_class = SMULL or  instr_class = SMLAL or  instr_class = UMULL or  instr_class = UMLAL then
+                        next_state <= mulmode;
                     end if;
 
 
@@ -280,6 +284,25 @@ begin
                     else 
                         RW          <= '0';
                     end if;
+                
+                    when mulmode => 
+                        next_state => muliplynow
+                        AMUX  <= '1';
+                        Rscrc <= "01";
+                        DDPW  <= '1';
+                        XDPW  <= '1';
+                    when muliplynow => 
+                     if instr_class = MUL or  instr_class = MLA then
+                        next_state <= start;         
+                    elsif instr_class = SMULL or  instr_class = SMLAL or  instr_class = UMULL or  instr_class = UMLAL then
+                        next_state <= muliplynow2;
+                     end if;      
+                        wadMux <= '1';
+                        RW <= '1';     
+                     when muliplynow2 =>    
+                        next_state <= start;         
+                        wadMux <= '0';
+                        RW <= '1';
                 when others =>
                     next_state <= start;
             end case;
